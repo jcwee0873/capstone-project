@@ -83,7 +83,7 @@ class CustomWebDriver:
             self.driver = None
 
         except Exception as e:
-            pass
+            self.driver = None
 
 
     def _check_windows(self) -> int:
@@ -103,7 +103,7 @@ class CustomWebDriver:
             self.driver.get(url)
 
         except Exception as e:
-            logger.error(
+            logger(
                 str(e),
                 "Webdriver GET"
             )
