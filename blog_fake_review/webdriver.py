@@ -13,7 +13,7 @@ class CustomWebDriver:
         self.headless = headless
 
         os_system = platform.system()
-        driver_path = os.path.abspath(os.path.join(os.getcwd(), './scraper/drivers'))
+        driver_path = os.path.abspath(os.path.join(os.getcwd(), './blog_fake_review/drivers'))
         driver_fn = 'msedgedriver.exe' if os_system == 'Windows' else 'msedgedriver'
 
         self.driver_location = os.path.abspath(os.path.join(driver_path, './' ,driver_fn))
