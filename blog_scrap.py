@@ -41,7 +41,7 @@ def main(**kargs):
 
     today = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     with open(
-        "./{keyword}_{today}.json".format(
+        "./data/origin/{keyword}.json".format(
             keyword=kargs["keyword"],
             today=today
         ),"w", encoding='utf-8'
