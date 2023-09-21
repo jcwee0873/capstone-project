@@ -1,5 +1,7 @@
+import re
 import bs4
 
+MAP_REGIX = re.compile("se-module-map")
 
 def extract_article_body(
     soup: bs4.BeautifulSoup,
@@ -81,14 +83,25 @@ def identify_tag_name(
     tuple[str, bs4.element.Tag]
         Return (tag name, tag)
     """
-    children = [t for t in tag.descendants]
+    children = [tag] + [t for t in tag.descendants]
     names = [child.name for child in children]
+    attrs = []
+    for t in children:
+        if isinstance(t, bs4.element.NavigableString): continue
+        attr = t.attrs
+        if attr.get('id'): attrs.append(attr['id'])
+        attrs += attr.get('class', [])
 
-    if 'img' in names:
+    if 'se-module-video' in attrs:
+        name = 'video'
+    elif [a for a in attrs if MAP_REGIX.match(a)]:
+        name = 'map'
+    elif 'video' in names:
+        name = 'gif'
+    elif 'img' in names:
         name = 'img'
     elif 'a' in names:
         name = 'a'
-
     else: name = 'text'
 
     return (name, tag)
@@ -130,6 +143,29 @@ def refine_paragraph_tag(
                 "content": child.get('href')
             })
     
+    elif name == 'gif':
+        for child in tag.find_all('video'):
+            result.append({
+                "info": "gif",
+                "content": child.get('data-gif-url')
+            })
+
+    
+    elif name == 'map':
+        text = tag.text.strip()
+
+        if text != "":
+            result.append({
+                "info": "map",
+                "content": text
+            })
+
+    elif name == 'video':
+        result.append({
+            "info": "video",
+            "content": "video"
+        })
+
     else:
         text = []
 
@@ -145,3 +181,35 @@ def refine_paragraph_tag(
             })
 
     return result
+
+
+def extract_additional_info(
+    soup: bs4.BeautifulSoup
+) -> dict:
+    selector_map = {
+        "profile": ('p', {"class": "caption align"}),
+        "article_cnt": ('span', {"class": "num cm-col1"}),
+        "love_cnt": ('em', {"class": "u_cnt _count"}),
+        "comment_cnt": ('em', {"class": "_commentCount"}),
+        "hash_tags": ("a", {"class": "item pcol2 itemTagfont _setTop"}),
+        "ad_post": ("div", {"class": "ssp-adcontent"}),
+        "video": ("div", {"class": "se-video"})
+    }
+
+    count_key = ["hash_tags", "ad_post", "video"]
+
+    result = {}
+
+    for name, selector in selector_map.items():
+        result[name] = soup.find_all(selector[0], selector[1])
+
+        if name in count_key:
+            result[name] = len(result[name])
+        else:
+            try:
+                result[name] = result[name][0].text.strip()
+            except:
+                result[name] = None
+
+    return result
+    
