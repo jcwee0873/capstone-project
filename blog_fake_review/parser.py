@@ -2,6 +2,7 @@ import re
 import bs4
 
 MAP_REGIX = re.compile("se-module-map")
+DIV_OR_A = re.compile('div|a')
 
 def extract_article_body(
     soup: bs4.BeautifulSoup,
@@ -55,7 +56,7 @@ def extract_paragraph(
     list[bs4.element.Tag]
     """
     selector_candidates = {
-        "se-main-container": ("div", {"class": "se-module"}),
+        "se-main-container": (DIV_OR_A, {"class": "se-module"}),
         "view": ("p", {"class": None})
     }
 
